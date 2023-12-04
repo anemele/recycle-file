@@ -1,0 +1,1 @@
+Send files or folders to the recycle bin.
