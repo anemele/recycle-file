@@ -5,20 +5,18 @@ from itertools import chain
 from .log import logger
 
 
-def get_args():
-    parser = argparse.ArgumentParser(__package__, description=__doc__)
-    parser.add_argument(
-        'file', nargs='+', type=str, help='Files or folders sent to the recycle bin'
-    )
+parser = argparse.ArgumentParser(__package__, description=__doc__)
+parser.add_argument(
+	'file', nargs='+', type=str, help='Files or folders sent to the recycle bin'
+)
 
-    args = parser.parse_args()
-    logger.debug(f'{args=}')
+args = parser.parse_args()
+logger.debug(f'{args=}')
 
-    file: list[str] = args.file
-    return file
+args_file: list[str] = args.file
 
 
-files = chain.from_iterable(map(glob.iglob, get_args()))
+files = chain.from_iterable(map(glob.iglob, args_file))
 
 
 # from .recycle import recycle
