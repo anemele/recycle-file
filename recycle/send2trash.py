@@ -52,11 +52,11 @@ FOF_ALLOWUNDO = 64
 FOF_NOERRORUI = 1024
 
 
-def convert_sh_file_opt_result(result):
+def convert_sh_file_opt_result(result: int) -> int:
     # map overlapping values from SHFileOpterationW to approximate standard windows errors
     # ref https://docs.microsoft.com/en-us/windows/win32/api/shellapi/nf-shellapi-shfileoperationw#return-value
     # ref https://docs.microsoft.com/en-us/windows/win32/debug/system-error-codes--0-499-
-    results = {
+    return {
         0x71: 0x50,  # DE_SAMEFILE -> ERROR_FILE_EXISTS
         0x72: 0x57,  # DE_MANYSRC1DEST -> ERROR_INVALID_PARAMETER
         0x73: 0x57,  # DE_DIFFDIR -> ERROR_INVALID_PARAMETER
@@ -82,12 +82,10 @@ def convert_sh_file_opt_result(result):
         0x402: 0xA1,  # UNKNOWN -> ERROR_BAD_PATHNAME
         0x10000: 0x1D,  # ERRORONDEST -> ERROR_WRITE_FAULT
         0x10074: 0x57,  # DE_ROOTDIR | ERRORONDEST -> ERROR_INVALID_PARAMETER
-    }
-
-    return results.get(result, result)
+    }.get(result, result)
 
 
-def prefix_and_path(path):
+def prefix_and_path(path: str) -> tuple[str, str]:
     r"""Guess the long-path prefix based on the kind of *path*.
     Local paths (C:\folder\file.ext) and UNC names (\\server\folder\file.ext)
     are handled.
@@ -111,7 +109,7 @@ def prefix_and_path(path):
     return prefix, long_path
 
 
-def get_awaited_path_from_prefix(prefix, path):
+def get_awaited_path_from_prefix(prefix: str, path: str) -> str:
     """Guess the correct path to pass to the SHFileOperationW() call.
     The long-path prefix must be removed, so we should take care of
     different long-path prefixes.
@@ -123,7 +121,7 @@ def get_awaited_path_from_prefix(prefix, path):
     return path[len(prefix) :]
 
 
-def get_short_path_name(long_name):
+def get_short_path_name(long_name: str) -> str:
     prefix, long_path = prefix_and_path(long_name)
     buf_size = GetShortPathNameW(long_path, None, 0)
     # FIX: https://github.com/hsoft/send2trash/issues/31
@@ -137,10 +135,9 @@ def get_short_path_name(long_name):
 
 
 def send2trash(paths: Iterable[str]):
-    # convert to full paths
-    paths = [op.abspath(path) if not op.isabs(path) else path for path in paths]
     # get short path to handle path length issues
-    paths = [get_short_path_name(path) for path in paths]
+    paths = [get_short_path_name(path) for path in map(op.abspath, paths)]
+
     fileop = SHFILEOPSTRUCTW()
     fileop.hwnd = 0
     fileop.wFunc = FO_DELETE

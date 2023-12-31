@@ -4,10 +4,9 @@ from itertools import chain
 
 from .log import logger
 
-
 parser = argparse.ArgumentParser(__package__, description=__doc__)
 parser.add_argument(
-	'file', nargs='+', type=str, help='Files or folders sent to the recycle bin'
+    'file', nargs='+', type=str, help='Files or folders sent to the recycle bin'
 )
 
 args = parser.parse_args()
@@ -27,4 +26,7 @@ files = chain.from_iterable(map(glob.iglob, args_file))
 
 from .send2trash import send2trash
 
-send2trash(files)
+try:
+    send2trash(files)
+except WindowsError as e:
+    print(e)
